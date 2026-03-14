@@ -1,8 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-const apiKey = process.env.GEMINI_API_KEY;
-
 type GenerateRecipeBody = {
   ingredients?: string;
   count?: number;
@@ -13,10 +11,18 @@ type GenerateRecipeBody = {
 };
 
 export async function POST(req: Request) {
+  const requestId = Math.random().toString(36).slice(2, 8);
+  const startedAt = new Date().toISOString();
+
   try {
+    console.log(`[${requestId}] /api/generate hit at ${startedAt}`);
+
+    const apiKey = process.env.GEMINI_API_KEY;
+
     if (!apiKey) {
+      console.error(`[${requestId}] GEMINI_API_KEY is missing`);
       return NextResponse.json(
-        { error: "GEMINI_API_KEY is missing." },
+        { error: "Server configuration error." },
         { status: 500 }
       );
     }
@@ -24,11 +30,16 @@ export async function POST(req: Request) {
     const body = (await req.json()) as GenerateRecipeBody;
 
     const ingredients = body.ingredients?.trim() ?? "";
-    const count = Math.min(Math.max(body.count ?? 10, 1), 10);
+    const count = Math.min(Math.max(body.count ?? 6, 1), 10);
     const regenerate = body.regenerate ?? false;
     const seed = body.seed ?? Date.now();
     const namingStyle = body.namingStyle ?? "classy-minimal-fine-dining";
     const language = body.language ?? "english";
+
+    console.log(`[${requestId}] ingredients: ${ingredients}`);
+    console.log(
+      `[${requestId}] options: count=${count}, regenerate=${regenerate}, seed=${seed}, namingStyle=${namingStyle}, language=${language}`
+    );
 
     if (!ingredients) {
       return NextResponse.json(
@@ -104,12 +115,15 @@ JSON format:
     }
   ]
 }
-`;
+`.trim();
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
 
+    console.log(`[${requestId}] raw model response length: ${text.length}`);
+
     let parsed: unknown;
+
     try {
       parsed = JSON.parse(text);
     } catch {
@@ -119,24 +133,25 @@ JSON format:
 
     const data = parsed as {
       rekomendasi_menu?: Array<{
-        nama_menu: string;
-        vibe_check: string;
-        estimasi_waktu: string;
-        estimasi_budget: string;
-        bahan_bahan: string[];
-        langkah_masak: string[];
-        info_gizi: {
-          kalori: string;
-          protein: string;
-          karbo: string;
-          lemak: string;
+        nama_menu?: string;
+        vibe_check?: string;
+        estimasi_waktu?: string;
+        estimasi_budget?: string;
+        bahan_bahan?: string[];
+        langkah_masak?: string[];
+        info_gizi?: {
+          kalori?: string;
+          protein?: string;
+          karbo?: string;
+          lemak?: string;
         };
-        tips_bestie: string;
-        dalle_prompt: string;
+        tips_bestie?: string;
+        dalle_prompt?: string;
       }>;
     };
 
     if (!data?.rekomendasi_menu || !Array.isArray(data.rekomendasi_menu)) {
+      console.error(`[${requestId}] invalid JSON structure from model`);
       throw new Error("Model returned an invalid JSON structure.");
     }
 
@@ -145,12 +160,9 @@ JSON format:
         nama_menu: item.nama_menu ?? "Seasonal Composition",
         vibe_check: item.vibe_check ?? "A clean, balanced everyday plate.",
         estimasi_waktu: item.estimasi_waktu ?? "20 min",
-        estimasi_budget:
-          item.estimasi_budget ?? "Rp18.000 - Rp35.000",
+        estimasi_budget: item.estimasi_budget ?? "Rp18.000 - Rp35.000",
         bahan_bahan: Array.isArray(item.bahan_bahan) ? item.bahan_bahan : [],
-        langkah_masak: Array.isArray(item.langkah_masak)
-          ? item.langkah_masak
-          : [],
+        langkah_masak: Array.isArray(item.langkah_masak) ? item.langkah_masak : [],
         info_gizi: {
           kalori: item.info_gizi?.kalori ?? "350 kcal",
           protein: item.info_gizi?.protein ?? "18 g",
@@ -162,22 +174,44 @@ JSON format:
           "Finish with a final taste adjustment before serving.",
         dalle_prompt:
           item.dalle_prompt ??
-          `A realistic plated food photograph of ${item.nama_menu ?? "a refined dish"}, elegant modern presentation, soft natural lighting, neutral ceramic plate, editorial food photography, highly detailed.`,
+          `A realistic plated food photograph of ${
+            item.nama_menu ?? "a refined dish"
+          }, elegant modern presentation, soft natural lighting, neutral ceramic plate, editorial food photography, highly detailed.`,
       })),
     };
 
     if (normalized.rekomendasi_menu.length === 0) {
+      console.error(`[${requestId}] no recipes generated after normalization`);
       throw new Error("No recipes were generated.");
     }
 
-    return NextResponse.json(normalized);
+    console.log(
+      `[${requestId}] success - returning ${normalized.rekomendasi_menu.length} recipes`
+    );
+
+    return NextResponse.json(normalized, { status: 200 });
   } catch (error) {
-    console.error("GEMINI ERROR:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[${requestId}] GEMINI ERROR:`, error);
+
+    if (
+      message.includes("429") ||
+      message.includes("Too Many Requests") ||
+      message.toLowerCase().includes("quota")
+    ) {
+      return NextResponse.json(
+        {
+          error: "AI quota penuh.",
+          detail: "Server sedang mencapai batas penggunaan. Coba lagi nanti.",
+        },
+        { status: 429 }
+      );
+    }
 
     return NextResponse.json(
       {
         error: "Failed to generate recipes.",
-        detail: error instanceof Error ? error.message : "Unknown error",
+        detail: message,
       },
       { status: 500 }
     );
