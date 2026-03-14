@@ -8,16 +8,16 @@ export default function IngredientForm({
   setIngredients,
 }: IngredientFormProps) {
   return (
-    <div className="bg-[#FFFaf3] rounded-2xl shadow-md p-6 max-w-xl mx-auto border border-[#D8C7A6]">
-      <label className="block text-sm font-medium text-[#3E5F4D] mb-2">
-        Tulis bahan yang kamu punya
+    <div>
+      <label className="block text-sm font-bold uppercase tracking-wider text-[#6F8F7B] mb-3">
+        Bahan yang tersedia
       </label>
 
       <textarea
         value={ingredients}
         onChange={(e) => setIngredients(e.target.value)}
-        placeholder="Contoh: telur, sosis, sawi putih"
-        className="w-full border border-[#AFC8B4] rounded-xl p-3 min-h-[120px] bg-white text-[#3E5F4D] placeholder:text-[#9AA9A0] focus:outline-none focus:ring-2 focus:ring-[#6F8F7B]"
+        placeholder="Contoh: telur, sosis, sawi putih, bawang putih"
+        className="w-full min-h-[140px] rounded-[24px] border border-[#D8C7A6] bg-[#F4EBDD] px-5 py-4 text-[#3E5F4D] placeholder:text-[#8a978f] focus:outline-none focus:ring-2 focus:ring-[#6F8F7B]"
       />
     </div>
   );
