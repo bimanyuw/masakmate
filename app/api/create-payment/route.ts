@@ -51,7 +51,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const redirectUrl = "http://localhost:3000/checkout/success";
+    // Mengambil domain secara otomatis dari header request
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    const host = req.headers.get("host");
+    const redirectUrl = `${protocol}://${host}/checkout/success`;
     const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     const payload = {
