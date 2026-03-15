@@ -415,8 +415,14 @@ export default function Home() {
   const isPreviewGenerated = searchParams.get("preview") === "generated";
 
   const [language, setLanguage] = useState<Language>("en");
-  const [ingredients, setIngredients] = useState("");
-  const [recipe, setRecipe] = useState<RecipeResponse | null>(null);
+  const [ingredients, setIngredients] = useState(
+    isPreviewGenerated
+      ? "chicken, eggs, rice, noodles, garlic, shallots, mushrooms, tomatoes, butter, soy sauce"
+      : ""
+  );
+  const [recipe, setRecipe] = useState<RecipeResponse | null>(
+    isPreviewGenerated ? previewGeneratedRecipe : null
+  );
   const [loading, setLoading] = useState(false);
   const [requestSeed, setRequestSeed] = useState(0);
   const resultsRef = useRef<HTMLElement | null>(null);
@@ -433,10 +439,6 @@ export default function Home() {
     }
 
     if (isPreviewGenerated) {
-      setIngredients(
-        "chicken, eggs, rice, noodles, garlic, shallots, mushrooms, tomatoes, butter, soy sauce"
-      );
-      setRecipe(previewGeneratedRecipe);
       return;
     }
 
