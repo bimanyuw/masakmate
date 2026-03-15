@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowDown,
   ChefHat,
@@ -36,6 +36,201 @@ type Recipe = {
 
 type RecipeResponse = {
   rekomendasi_menu: Recipe[];
+};
+
+const previewGeneratedRecipe: RecipeResponse = {
+  rekomendasi_menu: [
+    {
+      nama_menu: "Garlic Butter Chicken Rice",
+      vibe_check: "Clean, savory, and comforting.",
+      estimasi_waktu: "20 min",
+      estimasi_budget: "Rp18.000 - Rp35.000",
+      bahan_bahan: ["chicken", "rice", "garlic", "butter"],
+      langkah_masak: [
+        "Season the chicken lightly.",
+        "Sear with butter and garlic until golden.",
+        "Serve over warm rice.",
+      ],
+      info_gizi: {
+        kalori: "420 kcal",
+        protein: "24 g",
+        karbo: "34 g",
+        lemak: "18 g",
+      },
+      tips_bestie: "Finish with a final taste adjustment before serving.",
+    },
+    {
+      nama_menu: "Tomato Egg Skillet",
+      vibe_check: "Light, warm, and balanced.",
+      estimasi_waktu: "15 min",
+      estimasi_budget: "Rp12.000 - Rp22.000",
+      bahan_bahan: ["eggs", "tomatoes", "garlic"],
+      langkah_masak: [
+        "Saute the garlic until fragrant.",
+        "Cook the tomatoes until soft.",
+        "Add the eggs and stir gently until just set.",
+      ],
+      info_gizi: {
+        kalori: "280 kcal",
+        protein: "16 g",
+        karbo: "10 g",
+        lemak: "18 g",
+      },
+      tips_bestie: "Keep the eggs soft for a smoother finish.",
+    },
+    {
+      nama_menu: "Soy Glazed Mushroom Noodles",
+      vibe_check: "Savory, glossy, and weeknight-friendly.",
+      estimasi_waktu: "18 min",
+      estimasi_budget: "Rp15.000 - Rp28.000",
+      bahan_bahan: ["noodles", "mushrooms", "soy sauce", "garlic"],
+      langkah_masak: [
+        "Cook the noodles until tender.",
+        "Saute garlic and mushrooms in a pan.",
+        "Add soy sauce and toss with the noodles.",
+      ],
+      info_gizi: {
+        kalori: "390 kcal",
+        protein: "12 g",
+        karbo: "52 g",
+        lemak: "14 g",
+      },
+      tips_bestie: "Add the sauce gradually so the noodles stay balanced.",
+    },
+    {
+      nama_menu: "Shallot Omelette Toast",
+      vibe_check: "Soft, warm, and simple.",
+      estimasi_waktu: "12 min",
+      estimasi_budget: "Rp10.000 - Rp18.000",
+      bahan_bahan: ["eggs", "shallots", "bread", "butter"],
+      langkah_masak: [
+        "Toast the bread until crisp.",
+        "Cook the omelette gently with sliced shallots.",
+        "Serve over warm buttered toast.",
+      ],
+      info_gizi: {
+        kalori: "310 kcal",
+        protein: "14 g",
+        karbo: "20 g",
+        lemak: "18 g",
+      },
+      tips_bestie: "Cook on low heat for a softer texture.",
+    },
+    {
+      nama_menu: "Pan-Seared Soy Chicken",
+      vibe_check: "Glossy, practical, and satisfying.",
+      estimasi_waktu: "22 min",
+      estimasi_budget: "Rp20.000 - Rp36.000",
+      bahan_bahan: ["chicken", "soy sauce", "garlic", "pepper"],
+      langkah_masak: [
+        "Season the chicken lightly.",
+        "Sear in a hot pan until lightly browned.",
+        "Add garlic and soy sauce, then reduce briefly.",
+      ],
+      info_gizi: {
+        kalori: "430 kcal",
+        protein: "30 g",
+        karbo: "8 g",
+        lemak: "24 g",
+      },
+      tips_bestie: "Rest the chicken briefly before serving.",
+    },
+    {
+      nama_menu: "Butter Garlic Mushrooms",
+      vibe_check: "Rich, earthy, and polished.",
+      estimasi_waktu: "14 min",
+      estimasi_budget: "Rp14.000 - Rp24.000",
+      bahan_bahan: ["mushrooms", "garlic", "butter", "pepper"],
+      langkah_masak: [
+        "Melt butter in a pan.",
+        "Cook the mushrooms until golden.",
+        "Add garlic and finish with pepper.",
+      ],
+      info_gizi: {
+        kalori: "240 kcal",
+        protein: "7 g",
+        karbo: "12 g",
+        lemak: "17 g",
+      },
+      tips_bestie: "Avoid overcrowding the pan so the mushrooms brown well.",
+    },
+    {
+      nama_menu: "Chicken Tomato Rice Bowl",
+      vibe_check: "Bright, hearty, and clean.",
+      estimasi_waktu: "20 min",
+      estimasi_budget: "Rp18.000 - Rp32.000",
+      bahan_bahan: ["chicken", "rice", "tomatoes", "garlic"],
+      langkah_masak: [
+        "Cook the chicken until lightly golden.",
+        "Prepare the tomatoes with garlic until softened.",
+        "Serve both over warm rice.",
+      ],
+      info_gizi: {
+        kalori: "450 kcal",
+        protein: "26 g",
+        karbo: "38 g",
+        lemak: "18 g",
+      },
+      tips_bestie: "A little acidity from the tomato keeps it balanced.",
+    },
+    {
+      nama_menu: "Savory Egg Fried Noodles",
+      vibe_check: "Quick, familiar, and deeply comforting.",
+      estimasi_waktu: "16 min",
+      estimasi_budget: "Rp12.000 - Rp22.000",
+      bahan_bahan: ["eggs", "noodles", "garlic", "soy sauce"],
+      langkah_masak: [
+        "Cook the noodles and drain well.",
+        "Scramble the eggs lightly in a pan.",
+        "Add garlic, soy sauce, and noodles, then toss together.",
+      ],
+      info_gizi: {
+        kalori: "410 kcal",
+        protein: "15 g",
+        karbo: "54 g",
+        lemak: "15 g",
+      },
+      tips_bestie: "Keep the noodles dry enough so they do not turn soggy.",
+    },
+    {
+      nama_menu: "Mushroom Tomato Saute",
+      vibe_check: "Fresh, soft, and quietly elegant.",
+      estimasi_waktu: "13 min",
+      estimasi_budget: "Rp12.000 - Rp20.000",
+      bahan_bahan: ["mushrooms", "tomatoes", "garlic", "butter"],
+      langkah_masak: [
+        "Saute garlic in butter.",
+        "Cook mushrooms until lightly colored.",
+        "Add tomatoes and cook briefly until softened.",
+      ],
+      info_gizi: {
+        kalori: "230 kcal",
+        protein: "6 g",
+        karbo: "14 g",
+        lemak: "16 g",
+      },
+      tips_bestie: "Do not overcook the tomatoes if you want a fresher finish.",
+    },
+    {
+      nama_menu: "Golden Chicken Butter Toast",
+      vibe_check: "Crisp, warm, and indulgent.",
+      estimasi_waktu: "18 min",
+      estimasi_budget: "Rp16.000 - Rp28.000",
+      bahan_bahan: ["chicken", "bread", "butter", "garlic"],
+      langkah_masak: [
+        "Cook the chicken until fully done and lightly golden.",
+        "Toast the bread with butter.",
+        "Serve sliced chicken over the toast with garlic butter.",
+      ],
+      info_gizi: {
+        kalori: "440 kcal",
+        protein: "27 g",
+        karbo: "26 g",
+        lemak: "22 g",
+      },
+      tips_bestie: "Toast the bread last so it stays crisp.",
+    },
+  ],
 };
 
 const copy = {
@@ -216,6 +411,9 @@ const galleryImages = [
 
 export default function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isPreviewGenerated = searchParams.get("preview") === "generated";
+
   const [language, setLanguage] = useState<Language>("en");
   const [ingredients, setIngredients] = useState("");
   const [recipe, setRecipe] = useState<RecipeResponse | null>(null);
@@ -234,6 +432,14 @@ export default function Home() {
       setLanguage(savedLanguage);
     }
 
+    if (isPreviewGenerated) {
+      setIngredients(
+        "chicken, eggs, rice, noodles, garlic, shallots, mushrooms, tomatoes, butter, soy sauce"
+      );
+      setRecipe(previewGeneratedRecipe);
+      return;
+    }
+
     if (savedIngredients) setIngredients(savedIngredients);
 
     if (savedRecipes) {
@@ -243,7 +449,7 @@ export default function Home() {
         sessionStorage.removeItem("makanmate-recipes");
       }
     }
-  }, []);
+  }, [isPreviewGenerated]);
 
   const ingredientPreview = useMemo(
     () =>
@@ -343,7 +549,7 @@ export default function Home() {
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1600&q=80')",
+              "url('https://images.unsplash.com/photo-1466637574441-749b8f19452f?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
           }}
         />
         <div className="absolute inset-0 bg-black/50" />
